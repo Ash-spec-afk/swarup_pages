@@ -439,6 +439,53 @@
             <p>Already have an account? <a href="/login">Login</a></p>
           </div>
         </form>
+        <script>
+          document.querySelector('.signup-form').addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            const fullName = document.querySelector('#fullname').value.trim();
+            const email = document.querySelector('#email').value.trim();
+            const password = document.querySelector('#password').value;
+            const confirmPassword = document.querySelector('#confirm-password').value;
+            const termsAccepted = document.querySelector('#terms').checked;
+
+            // Basic validation
+            if (password !== confirmPassword) {
+              alert('Passwords do not match.');
+              return;
+            }
+
+            if (!termsAccepted) {
+              alert('You must agree to the terms before signing up.');
+              return;
+            }
+
+            try {
+              const response = await fetch('/api/addUser', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  fullName,
+                  email,
+                  password
+                })
+              });
+
+              if (response.ok) {
+                alert('Account created successfully! Redirecting to login...');
+                window.location.href = '/login'; // Redirect after successful signup
+              } else {
+                const error = await response.json();
+                alert(error.message || 'Sign-up failed. Please try again.');
+              }
+            } catch (error) {
+              console.error('Error during sign-up:', error);
+              alert('Something went wrong. Please try again later.');
+            }
+          });
+        </script>
       </div>
       <div class="signup-image">
         <div class="signup-image-content">

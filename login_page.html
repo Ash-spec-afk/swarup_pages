@@ -425,6 +425,36 @@
     </div>
   </section>
 
+  <script>
+    document.querySelector('.login-form').addEventListener('submit', async function (event) {
+      event.preventDefault(); // Prevent form from submitting the default way
+
+      const email = document.querySelector('#email').value;
+      const password = document.querySelector('#password').value;
+
+      try {
+        const response = await fetch('/api/auth', {
+          method: 'POST',
+          credentials: 'include', // include cookies in request
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({email, password})
+        });
+
+        if (response.ok) {
+          // Redirect to dashboard or show success message
+          window.location.href = '/'; // Change to your desired path
+        } else {
+          alert('Authentication failed. Please check your credentials.');
+        }
+      } catch (error) {
+        console.error('Error during authentication:', error);
+        alert('An error occurred. Please try again later.');
+      }
+    });
+  </script>
+
   <!-- Footer -->
   <footer>
     <ul class="footer-links">

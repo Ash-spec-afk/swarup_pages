@@ -248,48 +248,6 @@
       background-color: var(--primary-dark);
     }
 
-    .signup-divider {
-      display: flex;
-      align-items: center;
-      margin: 1.5rem 0;
-      color: #777;
-    }
-
-    .signup-divider::before,
-    .signup-divider::after {
-      content: "";
-      flex: 1;
-      height: 1px;
-      background-color: #ddd;
-    }
-
-    .signup-divider span {
-      padding: 0 1rem;
-    }
-
-    .social-signup {
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .social-button {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0.75rem;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      background-color: white;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-
-    .social-button:hover {
-      background-color: #f5f5f5;
-    }
 
     .login-link {
       text-align: center;
@@ -422,19 +380,66 @@
               <input type="password" id="confirm-password" placeholder="Confirm password" required>
             </div>
           </div>
+
+          <div class="form-group">
+            <label for="dob">Date of Birth</label>
+            <input type="date" id="dob" required>
+          </div>
+
+          <div class="form-group">
+            <label for="age">Age</label>
+            <input type="number" id="age" min="0" required>
+          </div>
+
+          <div class="form-group">
+            <label for="gender">Gender</label>
+            <select id="gender" required>
+              <option value="">Select...</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Non-Binary">Non-Binary</option>
+              <option value="Other">Other</option>
+              <option value="Prefer not to say">Prefer not to say</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="height">Height (cm)</label>
+            <input type="number" id="height" min="0" required>
+          </div>
+
+          <div class="form-group">
+            <label for="weight">Weight (kg)</label>
+            <input type="number" id="weight" min="0" required>
+          </div>
+
+          <div class="form-group">
+            <label for="habits">Habits (comma separated)</label>
+            <input type="text" id="habits" placeholder="e.g., smoking, alcohol, exercise">
+          </div>
+
+          <div class="form-group">
+            <label for="medicalHistory">Medical History</label>
+            <textarea id="medicalHistory" rows="3" placeholder="Any relevant history..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="allergies">Allergies</label>
+            <textarea id="allergies" rows="2" placeholder="List any allergies..."></textarea>
+          </div>
           <div class="terms-checkbox">
             <input type="checkbox" id="terms" required>
             <label for="terms">I agree to the <a href="#">Terms of Service</a> and <a href="/terms">Privacy
                 Policy</a></label>
           </div>
           <button type="submit" class="signup-button">Create Account</button>
-          <div class="signup-divider">
-            <span>Or sign up with</span>
-          </div>
-          <div class="social-signup">
-            <button type="button" class="social-button">Google</button>
-            <button type="button" class="social-button">Facebook</button>
-          </div>
+          <!-- <div class="signup-divider"> -->
+          <!--   <span>Or sign up with</span> -->
+          <!-- </div> -->
+          <!-- <div class="social-signup"> -->
+          <!--   <button type="button" class="social-button">Google</button> -->
+          <!--   <button type="button" class="social-button">Facebook</button> -->
+          <!-- </div> -->
           <div class="login-link">
             <p>Already have an account? <a href="/login">Login</a></p>
           </div>
@@ -447,6 +452,14 @@
             const email = document.querySelector('#email').value.trim();
             const password = document.querySelector('#password').value;
             const confirmPassword = document.querySelector('#confirm-password').value;
+            const dob = document.querySelector('#dob').value;
+            const age = parseInt(document.querySelector('#age').value, 10);
+            const gender = document.querySelector('#gender').value;
+            const height = parseInt(document.querySelector('#height').value, 10);
+            const weight = parseInt(document.querySelector('#weight').value, 10);
+            const habits = document.querySelector('#habits').value.trim();
+            const medicalHistory = document.querySelector('#medicalHistory').value.trim();
+            const allergies = document.querySelector('#allergies').value.trim();
             const termsAccepted = document.querySelector('#terms').checked;
 
             // Basic validation
@@ -459,6 +472,19 @@
               alert('You must agree to the terms before signing up.');
               return;
             }
+            const newUser = {
+              name: fullName,
+              psswd: password,
+              email,
+              dob,
+              age,
+              gender,
+              height,
+              weight,
+              habits,
+              medicalHistory,
+              allergies
+            };
 
             try {
               const response = await fetch('/api/addUser', {
@@ -466,16 +492,12 @@
                 headers: {
                   'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                  fullName,
-                  email,
-                  password
-                })
+                body: JSON.stringify(newUser)
               });
 
               if (response.ok) {
                 alert('Account created successfully! Redirecting to login...');
-                window.location.href = '/login'; // Redirect after successful signup
+                window.location.href = '/login';
               } else {
                 const error = await response.json();
                 alert(error.message || 'Sign-up failed. Please try again.');

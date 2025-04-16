@@ -243,6 +243,13 @@
       margin-bottom: 15px;
       color: var(--dark);
     }
+    #speech-output {
+      margin-top: 1rem;
+      font-size: 1.2rem;
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      min-height: 2rem;
+    }
   </style>
   <script type="text/javascript" src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
   <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
@@ -289,35 +296,35 @@
     <div class="language-sidebar">
       <div class="language-heading">Select Language</div>
       <div class="language-option active">
-        <img src="England.jpeg" alt="English flag">
+        <img src="/England.jpeg" alt="English flag">
         English
       </div>
       <div class="language-option">
-        <img src="spain.jpeg" alt="Spanish flag">
+        <img src="/spain.jpeg" alt="Spanish flag">
         Español
       </div>
       <div class="language-option">
-        <img src="france.jpeg" alt="French flag">
+        <img src="/france.jpeg" alt="French flag">
         Français
       </div>
       <div class="language-option">
-        <img src="germany.jpeg" alt="German flag">
+        <img src="/germany.jpeg" alt="German flag">
         Deutsch
       </div>
       <div class="language-option">
-        <img src="china.jpeg" alt="Chinese flag">
+        <img src="/china.jpeg" alt="Chinese flag">
         中文
       </div>
       <div class="language-option">
-        <img src="japan.jpeg" alt="Japanese flag">
+        <img src="/japan.jpeg" alt="Japanese flag">
         日本語
       </div>
       <div class="language-option">
-        <img src="india.jpeg" alt="Hindi flag">
+        <img src="/india.jpeg" alt="Hindi flag">
         हिन्दी
       </div>
       <div class="language-option">
-        <img src="arabia.jpeg" alt="Arabic flag">
+        <img src="/arabia.jpeg" alt="Arabic flag">
         العربية
       </div>
     </div>
@@ -361,8 +368,8 @@
         </div>
       </div>
 
-      <div class="chat-input">
-        <button class="voice-btn">
+      <div class="chat-input" id="chat-input">
+        <button class="voice-btn" id="mic">
           <svg viewBox="0 0 24 24">
             <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"></path>
             <path
@@ -370,8 +377,8 @@
             </path>
           </svg>
         </button>
-        <input type="text" id="txtinp" name="txtinp" placeholder="Type your message here...">
-        <button class="send-btn" onclick="analyze()">
+        <input type="text" id="userInput" name="userInput" placeholder="Type your message here...">
+        <button class="send-btn" onclick="runPython()">
           <svg viewBox="0 0 24 24">
             <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
           </svg>
@@ -379,127 +386,62 @@
       </div>
     </div>
   </div>
-  <input type="file" id="fileInput" />
-  <input type="file" id="fileInput_words" />
-  <h2>Enter something:</h2>
-  <input type="text" id="userInput" />
-  <button onclick="runPython()">Send to Python</button>
+  <h2>Multilingual Speech Input</h2>
+
+  <select id="language-select">
+    <option value="en-US">English</option>
+    <option value="es-ES">Español</option>
+    <option value="fr-FR">Français</option>
+    <option value="de-DE">Deutsch</option>
+    <option value="zh-CN">中文 (Chinese)</option>
+    <option value="ja-JP">日本語 (Japanese)</option>
+    <option value="hi-IN">हिन्दी (Hindi)</option>
+    <option value="ar-SA">العربية (Arabic)</option>
+  </select>
+  <div id="speech-output"></div>
+  <!-- <input type="text" id="userInput" /> -->
+  <!-- <button onclick="runPython()">Send to Python</button> -->
 
   <p><strong>Result from Python:</strong> <span id="output"></span></p>
   <script>
-    const stopwords = ["youve", 'have', 'only', "isnt", 'll', 'may', "hadnt", 'their', 'about', "theyll", 'will', 'well', "dont", 'there', 'ain', 'ours', 'ought', 'so', 'having', 'whom', 'all', 'ourselves', 'am', 'what', "mustnt", 'o', 'needn', 'because', "theyd", 'been', 'who', "theyve", 'until', "arent", 'some', 'in', 'i', 'nor', 'other', 'must', 'wheres', 'for', 'them', 'every', 'uh', 'any', 'its', 'evening', 'anybody', 'themselves', 'down', 'hadn', 'd', "doesnt", 'but', "thatll", 'itself', "weve", 'a', 'before', "didnt", 'further', 'under', "neednt", 'isn', "shes", 'you', 'weren', 'won', "ill", 'has', "shed", 'here', 'someone', 'don', 'why', 'how', 'own', 'oops', "couldnt", 'shan', 'sorry', 'during', 'over', 'into', 'most', 'when', 'our', 'these', 'more', 'to', 'with', 'thing', 'of', 'as', 'does', 'can', 'is', 'get', 'his', 'he', "wasnt", 'which', 'your', 'didn', 'hey', 'at', 'ah', 'out', 'mustn', 'hers', 'from', "hes", 'aren', 'I', 'himself', 'mightn', 've', 'both', 'yourself', "youre", 'after', 'same', 'off', 'm', 're', "well", 'this', 'could', "id", "im", 'through', 'wouldn', "youd", 'okay', 'got', 'yours', 'would', 'greetings', 'shouldn', "mightnt", 'then', 'too', 'an', 'below', 'whens', 'wasn', 'my', 'shall', 'hasn', 'him', "hasnt", 'were', 'be', 'doesn', "were", "ive", 'they', 'thanks', 'each', "werent", 'and', "havent", 'against', 'between', 'she', 'the', 'haven', "shell", 'are', "itd", 'whys', 'wow', 'whats', 'hows', "shouldnt", 'might', 'yourselves', 'do', 'again', 'me', "shouldve", 'had', 'very', 'should', 'if', 't', 'hi', "youll", 'being', 'y', "shant", 'myself', 'up', "wont", 'no', 'was', 'hello', 'by', 'such', 'that', 'her', 'than', 'once', "its", 'herself', 'doing', "hed", 'couldn', 'not', 'we', "wed", 'above', 'now', 'few', 'while', 'please', 'on', 'did', 'something', "itll", 'sure', 'those', "hell", 's', 'it', 'morning', 'us', 'theirs', "theyre", 'where', "wouldnt", 'just', 'or', 'ma'];
-    const threshold = 0.85;
-    let symptoms_word_emb = [];
-    let worddata = [];
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-    async function loadData() {
-      if (symptoms_word_emb.length && worddata.length) return;
+    if (!SpeechRecognition) {
+      alert("Sorry, your browser doesn't support speech recognition.");
+    } else {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
 
-      const vectorsText = await fetch('vectors.txt').then(res => res.text());
-      symptoms_word_emb = vectorsText
-        .trim()
-        .split('}')
-        .slice(0, -1)
-        .map(chunk => JSON.parse(chunk + '}').embedding);
+      const mic = document.getElementById('mic');
+      const output = document.getElementById('speech-output');
+      const langSelect = document.getElementById('language-select');
 
-      const wordsText = await fetch('words.txt').then(res => res.text());
-      worddata = wordsText.trim().split('\n').map(x => x.trim());
-    }
-
-    function cosSim(a, b) {
-      let sum = 0, moda = 0, modb = 0;
-      for (let i = 0; i < a.length; i++) {
-        sum += a[i] * b[i];
-        moda += a[i] ** 2;
-        modb += b[i] ** 2;
-      }
-      return sum / Math.sqrt(moda * modb);
-    }
-
-    function beautifyString(text) {
-      text = text.toLowerCase().replace(/\W/g, ' ').replace(/\s+/g, ' ');
-      let words = text.split(' ').filter(word => !stopwords.includes(word));
-      return words;
-    }
-
-    function generatePairs(words) {
-      const pairs = [];
-      for (let i = 0; i < words.length; i++) {
-        for (let j = i + 1; j < words.length; j++) {
-          pairs.push(words[i] + ' ' + words[j]);
-        }
-      }
-      return pairs;
-    }
-
-    async function getEmbedding(word) {
-      const response = await fetch('http://localhost:11434/api/embeddings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: "mxbai-embed-large",
-          prompt: "Represent this sentence for searching relevant passages: " + word
-        })
+      mic.addEventListener('click', () => {
+        recognition.lang = langSelect.value;
+        // mic.classList.add('listening');
+        // output.textContent = "Listening...";
+        recognition.start();
       });
-      const json = await response.json();
-      return json.embedding;
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        output.textContent = transcript;
+        // mic.classList.remove('listening');
+      };
+
+      recognition.onerror = (event) => {
+        output.textContent = "Error: " + event.error;
+        // mic.classList.remove('listening');
+      };
+
+      // recognition.onend = () => {
+      //   mic.classList.remove('listening');
+      // };
     }
-
-    async function getSymptoms(sentence) {
-      await loadData();
-
-      const sentenceList = beautifyString(sentence);
-      const symplist = [];
-      const temp = [];
-      const words_done = new Set();
-
-      let gram_2 = [];
-      if (sentenceList.length < 10 && sentenceList.length >= 2) {
-        gram_2 = generatePairs(sentenceList);
-      } else {
-        for (let i = 0; i < sentenceList.length - 1; i++) {
-          gram_2.push(sentenceList[i] + ' ' + sentenceList[i + 1]);
-        }
-      }
-
-      const gram_1 = sentenceList;
-      const required_list = [...new Set(gram_2)].sort((a, b) => {
-        return Math.abs(sentenceList.indexOf(a.split(' ')[0]) - sentenceList.indexOf(a.split(' ')[1]));
-      });
-      required_list.push(...gram_1);
-
-      for (const word of required_list) {
-        const temp_word = word.split(' ');
-        if (temp_word.some(w => words_done.has(w))) continue;
-
-        const embedding = await getEmbedding(word);
-
-        for (let index = 0; index < symptoms_word_emb.length; index++) {
-          const score = cosSim(embedding, symptoms_word_emb[index]);
-          if (score > threshold) {
-            if (temp.length === 0 || temp[0][0] < score) {
-              temp[0] = [score, worddata[index]];
-              temp_word.forEach(w => words_done.add(w));
-            }
-          }
-        }
-
-        if (temp.length && !symplist.map(i => i[1]).includes(temp[0][1])) {
-          symplist.push(...temp);
-        }
-        temp.length = 0;
-      }
-
-      return symplist.map(i => i[1]);
-    }
-
-    // async function analyze() {
-    //     const input = document.getElementById('txtinp').value;
-    //     const symptoms = await getSymptoms(input);
-    //     console.log('Detected symptoms: ' + symptoms.join(', '));
-    //     document.getElementById('result').innerText = 'Detected symptoms: ' + symptoms.join(', ');
-    // }
-
+  </script>
+  
+  <script>
     async function analyze() {
       const input = document.getElementById('txtinp').value;
       const symptoms = await postData(input);
@@ -515,11 +457,12 @@
 
     async function runPython() {
       const input = document.getElementById("userInput").value;
-
-      const fileInput = document.getElementById("fileInput");
-      const file = fileInput.files[0];
-      const fileInput_words = document.getElementById("fileInput_words");
-      const file_words = fileInput_words.files[0];
+      const file = await fetch("/vectors.txt");
+      // const fileInput = document.getElementById("fileInput");
+      // const file = fileInput.files[0];
+      const file_words = await fetch("/words.txt");
+      // const fileInput_words = document.getElementById("fileInput_words");
+      // const file_words = fileInput_words.files[0];
 
       const text = await file.text();
       const text_words = await file_words.text();

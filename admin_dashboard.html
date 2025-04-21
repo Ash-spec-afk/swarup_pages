@@ -1,16 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
     body {
       font-family: 'Lora', serif;
-      background: linear-gradient(to right,  #FF99AC, #FAE0E4);
+      background: linear-gradient(to right, #FF99AC, #FAE0E4);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -25,7 +30,8 @@
       background-color: rgba(255, 255, 255, 0.9);
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       position: fixed;
-      top: 0; left: 0;
+      top: 0;
+      left: 0;
       z-index: 1000;
     }
 
@@ -37,9 +43,21 @@
       width: 100%;
     }
 
-    .logo { display: flex; align-items: center; }
-    .logo img { width: 40px; height: 40px; }
-    .logo-text { font-size: 24px; font-weight: 700; margin-left: 10px; }
+    .logo {
+      display: flex;
+      align-items: center;
+    }
+
+    .logo img {
+      width: 40px;
+      height: 40px;
+    }
+
+    .logo-text {
+      font-size: 24px;
+      font-weight: 700;
+      margin-left: 10px;
+    }
 
     nav ul {
       list-style: none;
@@ -160,6 +178,7 @@
     }
   </style>
 </head>
+
 <body>
   <header>
     <div class="toolbar">
@@ -206,9 +225,9 @@
       </div>
     </div>
 
-    <div class="button-group">
-      <button class="action-btn">List of Appointments</button>
-    </div>
+    <!-- <div class="button-group"> -->
+    <!--   <button class="action-btn">List of Appointments</button> -->
+    <!-- </div> -->
   </div>
 
   <footer>
@@ -246,4 +265,5 @@
     }
   </script>
 </body>
+
 </html>

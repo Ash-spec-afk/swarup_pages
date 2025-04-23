@@ -489,56 +489,92 @@
       chatMessages.appendChild(msg);
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
-
+    
     let pyodide;
-
+    
     async function initPyodide() {
       pyodide = await loadPyodide();
     }
-
+    let text;
+    let text_words;
+    //files
+    async function LOADFILES(){
+    const file = await fetch("/vectors.txt");
+    const file_words = await fetch("/words.txt");
+    text = await file.text();
+    text_words = await file_words.text();
+    }
+    LOADFILES()
     async function runPython() {
-      const input = document.getElementById("userInput").value;
-      const file = await fetch("/vectors.txt");
-      // const fileInput = document.getElementById("fileInput");
-      // const file = fileInput.files[0];
-      const file_words = await fetch("/words.txt");
-      // const fileInput_words = document.getElementById("fileInput_words");
-      // const file_words = fileInput_words.files[0];
+      const inputy = document.getElementById("userInput").value;
+      pyodide.globals.set("jss_input", inputy);
+      addMessage(inputy,'user');
+      docs = document.getElementById('userInput');
+      docs.value = '';
+      const beautified_string = await pyodide.runPythonAsync(`
+import re
 
-      const text = await file.text();
-      const text_words = await file_words.text();
-
-
-      const payload = {
-        model: "mxbai-embed-large",
-        prompt: `Represent this sentence for searching relevant passages: ${input}`
-      };
-      const response_se = await fetch("http://localhost:11434/api/embeddings", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
-      }
-      )
-
-      const text_se = await response_se.text();
-
-      // Pass text content to Python
-      pyodide.globals.set("vectors_txt", text);
-      pyodide.globals.set("words_txt", text_words);
-      pyodide.globals.set("se_txt", text_se);
-
-      // await pyodide.FS.writeFile("vectors_txt", text);
-
-      // You can use setGlobals to pass JS variables to Python
-      pyodide.globals.set("js_input", inputy);
-      // Run Python code that uses the variable
-      const resulty = await pyodide.runPythonAsync(`
-import json, re, os
-from itertools import combinations
-#VARIABLES
 stopwords = ["youve", 'have', 'only', "isnt", 'll', 'may', "hadnt", 'their', 'about', "theyll", 'will', 'well', "dont", 'there', 'ain', 'ours', 'ought', 'so', 'having', 'whom', 'all', 'ourselves', 'am', 'what', "mustnt", 'o', 'needn', 'because', "theyd", 'been', 'who', "theyve", 'until', "arent", 'some', 'in', 'i', 'nor', 'other', 'must', 'wheres', 'for', 'them', 'every', 'uh', 'any', 'its', 'evening', 'anybody', 'themselves', 'down', 'hadn', 'd', "doesnt", 'but', "thatll", 'itself', "weve", 'a', 'before', "didnt", 'further', 'under', "neednt", 'isn', "shes", 'you', 'weren', 'won', "ill", 'has', "shed", 'here', 'someone', 'don', 'why', 'how', 'own', 'oops', "couldnt", 'shan', 'sorry', 'during', 'over', 'into', 'most', 'when', 'our', 'these', 'more', 'to', 'with', 'thing', 'of', 'as', 'does', 'can', 'is', 'get', 'his', 'he', "wasnt", 'which', 'your', 'didn', 'hey', 'at', 'ah', 'out', 'mustn', 'hers', 'from', "hes", 'aren', 'I', 'himself', 'mightn', 've', 'both', 'yourself', "youre", 'after', 'same', 'off', 'm', 're', "well", 'this', 'could', "id", "im", 'through', 'wouldn', "youd", 'okay', 'got', 'yours', 'would', 'greetings', 'shouldn', "mightnt", 'then', 'too', 'an', 'below', 'whens', 'wasn', 'my', 'shall', 'hasn', 'him', "hasnt", 'were', 'be', 'doesn', "were", "ive", 'they', 'thanks', 'each', "werent", 'and', "havent", 'against', 'between', 'she', 'the', 'haven', "shell", 'are', "itd", 'whys', 'wow', 'whats', 'hows', "shouldnt", 'might', 'yourselves', 'do', 'again', 'me', "shouldve", 'had', 'very', 'should', 'if', 't', 'hi', "youll", 'being', 'y', "shant", 'myself', 'up', "wont", 'no', 'was', 'hello', 'by', 'such', 'that', 'her', 'than', 'once', "its", 'herself', 'doing', "hed", 'couldn', 'not', 'we', "wed", 'above', 'now', 'few', 'while', 'please', 'on', 'did', 'something', "itll", 'sure', 'those', "hell", 's', 'it', 'morning', 'us', 'theirs', "theyre", 'where', "wouldnt", 'just', 'or', 'ma']
+
+def beautify_string(text):
+  text = text.lower()  # Convert to lowercase
+  text = re.sub(r'\W', ' ', text)  # Remove punctuation
+  text = re.sub(r'\s+', ' ', text)  # Replace multiple spaces with a single space
+  words = text.split()  # Tokenize into words
+  words = [word for word in words if word not in stopwords]  # Remove stopwords
+  return words
+      
+def helper_func():
+  sentenceList = beautify_string(jss_input)
+  gram_2 = {sentenceList[i-1]+" "+sentenceList[i] for i in range(1,len(sentenceList))}
+  gram_1 = set(sentenceList)
+  required_list = list(gram_2)
+  required_list.sort(key = lambda x:abs(sentenceList.index(x.split()[0])-sentenceList.index(x.split()[1])))
+  required_list += list(gram_1)
+  return "#$".join(required_list)
+helper_func()
+      `);
+      const inputArray = beautified_string.split("#$");
+      pyodide.globals.set("js_input", beautified_string);
+
+      const responsesNonNative = await Promise.all(
+        inputArray.map(async (inputy) => {
+          const payload = {
+            model: "mxbai-embed-large",
+            prompt: `Represent this sentence for searching relevant passages: ${inputy}`
+          };
+
+          const response = await fetch("http://localhost:11434/api/embeddings", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+          });
+
+          const data = await response.json();
+          return {
+      text: inputy,
+      embedding: data.embedding
+    };
+        })
+      );
+      responses = pyodide.toPy(responsesNonNative);
+      console.log(responses);
+
+
+// Pass text content to Python
+pyodide.globals.set("vectors_txt", text);
+pyodide.globals.set("words_txt", text_words);
+pyodide.globals.set("see_txt", responses);
+console.log(text);
+console.log(text_words);
+
+// Run Python code that uses the variable
+const resulty = await pyodide.runPythonAsync(`
+import json, re
+
+#VARIABLES
 symptoms_word_emb = []
 worddata = []
 threshold = 0.9
@@ -553,58 +589,41 @@ def cos_sim(a,b):
         modb += b[i]*b[i]
     return summ/((moda*modb)**(0.5))
 
-def beautify_string(text):
-    text = text.lower()  # Convert to lowercase
-    text = re.sub(r'\W', ' ', text)  # Remove punctuation
-    text = re.sub(r'\s+', ' ', text)  # Replace multiple spaces with a single space
-    words = text.split()  # Tokenize into words
-    words = [word for word in words if word not in stopwords]  # Remove stopwords
-    return words
-
-
-
 def getSymptoms(sentence):
-    data = vectors_txt.split('}')[:-1]
-    for i in data:
-        symptoms_word_emb.append(json.loads(i+'}')['embedding'])
-
+    symptoms_word_emb = []
     worddata = [x.strip() for x in words_txt.split("$$")]
 
-    sentenceList = beautify_string(sentence)
+    data = vectors_txt.split('}')[:-1]
+    for i in data:
+        symptoms_word_emb.append(json.loads(i + '}')['embedding'])
+
+    required_list = [(index, see_txt[index]['text']) for index in range(len(see_txt))]
     symplist = []
     temp = []
     words_done = set()
 
-    gram_2 = {sentenceList[i-1]+" "+sentenceList[i] for i in range(1,len(sentenceList))}
-    gram_1 = set(sentenceList)
-    required_list = list(gram_2)
-    required_list.sort(key = lambda x:abs(sentenceList.index(x.split()[0])-sentenceList.index(x.split()[1])))
-    required_list += list(gram_1)
-    for word in required_list:
+    for index, word in required_list:
         temp_word = word.split()
-        embeddingdata = json.loads(se_txt)['embedding']
+        embeddingdata = see_txt[index]['embedding']
 
-        for index,i in enumerate(symptoms_word_emb):
-            x = cos_sim(embeddingdata,i)
-            if x > threshold:
-                if len(temp) == 0:
-                    temp.append((x,worddata[index]))
-                    words_done = words_done.union(set(word.split()))
+        for i, symptom_vector in enumerate(symptoms_word_emb):
+            x = cos_sim(embeddingdata, symptom_vector)
+            if x > 0.9:
+                if not temp:
+                    temp.append((x, worddata[i]))
+                    words_done.update(temp_word)
                 else:
                     if temp[0][0] < x:
-                        temp[0] = (x,worddata[index])
-        if len(temp) and temp[0][1] in [i[1] for i in symplist]:
-            continue
-        symplist.extend(temp)
+                        temp[0] = (x, worddata[i])
+
+        if temp and temp[0][1] not in [symp[1] for symp in symplist]:
+            symplist.extend(temp)
         temp.clear()
+
     return ",".join([i[1] for i in symplist if i[1] != "pain"])
 getSymptoms(js_input)
 `);
-      addMessage(inputy,'user');
       addMessage(resulty,'bot');
-      console.log(resulty);
-      docs = document.getElementById('userInput');
-      docs.value = '';
     }
     initPyodide();
 

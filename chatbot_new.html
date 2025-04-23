@@ -532,16 +532,16 @@
       // await pyodide.FS.writeFile("vectors_txt", text);
 
       // You can use setGlobals to pass JS variables to Python
-      pyodide.globals.set("js_input", input);
+      pyodide.globals.set("js_input", inputy);
       // Run Python code that uses the variable
-      const result = await pyodide.runPythonAsync(`
+      const resulty = await pyodide.runPythonAsync(`
 import json, re, os
 from itertools import combinations
 #VARIABLES
 stopwords = ["youve", 'have', 'only', "isnt", 'll', 'may', "hadnt", 'their', 'about', "theyll", 'will', 'well', "dont", 'there', 'ain', 'ours', 'ought', 'so', 'having', 'whom', 'all', 'ourselves', 'am', 'what', "mustnt", 'o', 'needn', 'because', "theyd", 'been', 'who', "theyve", 'until', "arent", 'some', 'in', 'i', 'nor', 'other', 'must', 'wheres', 'for', 'them', 'every', 'uh', 'any', 'its', 'evening', 'anybody', 'themselves', 'down', 'hadn', 'd', "doesnt", 'but', "thatll", 'itself', "weve", 'a', 'before', "didnt", 'further', 'under', "neednt", 'isn', "shes", 'you', 'weren', 'won', "ill", 'has', "shed", 'here', 'someone', 'don', 'why', 'how', 'own', 'oops', "couldnt", 'shan', 'sorry', 'during', 'over', 'into', 'most', 'when', 'our', 'these', 'more', 'to', 'with', 'thing', 'of', 'as', 'does', 'can', 'is', 'get', 'his', 'he', "wasnt", 'which', 'your', 'didn', 'hey', 'at', 'ah', 'out', 'mustn', 'hers', 'from', "hes", 'aren', 'I', 'himself', 'mightn', 've', 'both', 'yourself', "youre", 'after', 'same', 'off', 'm', 're', "well", 'this', 'could', "id", "im", 'through', 'wouldn', "youd", 'okay', 'got', 'yours', 'would', 'greetings', 'shouldn', "mightnt", 'then', 'too', 'an', 'below', 'whens', 'wasn', 'my', 'shall', 'hasn', 'him', "hasnt", 'were', 'be', 'doesn', "were", "ive", 'they', 'thanks', 'each', "werent", 'and', "havent", 'against', 'between', 'she', 'the', 'haven', "shell", 'are', "itd", 'whys', 'wow', 'whats', 'hows', "shouldnt", 'might', 'yourselves', 'do', 'again', 'me', "shouldve", 'had', 'very', 'should', 'if', 't', 'hi', "youll", 'being', 'y', "shant", 'myself', 'up', "wont", 'no', 'was', 'hello', 'by', 'such', 'that', 'her', 'than', 'once', "its", 'herself', 'doing', "hed", 'couldn', 'not', 'we', "wed", 'above', 'now', 'few', 'while', 'please', 'on', 'did', 'something', "itll", 'sure', 'those', "hell", 's', 'it', 'morning', 'us', 'theirs', "theyre", 'where', "wouldnt", 'just', 'or', 'ma']
 symptoms_word_emb = []
 worddata = []
-threshold = 0.85
+threshold = 0.9
 
 #FUNCTIONS
 
@@ -582,9 +582,6 @@ def getSymptoms(sentence):
     required_list += list(gram_1)
     for word in required_list:
         temp_word = word.split()
-        should_cont = [True if i in words_done else False for i in temp_word]
-        if True in should_cont:
-            continue
         embeddingdata = json.loads(se_txt)['embedding']
 
         for index,i in enumerate(symptoms_word_emb):
@@ -600,11 +597,12 @@ def getSymptoms(sentence):
             continue
         symplist.extend(temp)
         temp.clear()
-    return ",".join([i[1] for i in symplist])
+    return ",".join([i[1] for i in symplist if i[1] != "pain"])
 getSymptoms(js_input)
 `);
-      addMessage(input,'user');
-      addMessage(result,'bot');
+      addMessage(inputy,'user');
+      addMessage(resulty,'bot');
+      console.log(resulty);
       docs = document.getElementById('userInput');
       docs.value = '';
     }

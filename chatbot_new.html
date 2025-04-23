@@ -243,6 +243,7 @@
       margin-bottom: 15px;
       color: var(--dark);
     }
+
     #speech-output {
       margin-top: 1rem;
       font-size: 1.2rem;
@@ -399,10 +400,6 @@
     <option value="ar-SA">العربية (Arabic)</option>
   </select>
   <div id="speech-output"></div>
-  <!-- <input type="text" id="userInput" /> -->
-  <!-- <button onclick="runPython()">Send to Python</button> -->
-
-  <p><strong>Result from Python:</strong> <span id="output"></span></p>
   <script>
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
@@ -427,8 +424,38 @@
       recognition.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
         output.textContent = transcript;
+        docs = document.getElementById('userInput');
+        docs.value = transcript;
         // mic.classList.remove('listening');
       };
+
+
+      //       recognition.onresult = async (event) => {
+      //   const transcript = event.results[0][0].transcript;
+      //   output.textContent = "Original: " + transcript;
+
+      //   const targetLang = langSelect.value.split("-")[0]; // e.g., 'fr-FR' → 'fr'
+
+      //   try {
+      //     const res = await fetch("https://deep-translator-api.azurewebsites.net/microsoft/translate", {
+      //       method: "POST",
+      //       headers: {
+      //         "Content-Type": "application/json"
+      //       },
+      //       body: JSON.stringify({
+      //         source_lang: "en", // assuming input is English
+      //         target_lang: targetLang,
+      //         text: transcript
+      //       })
+      //     });
+
+      //     const data = await res.json();
+      //     const translated = data.translated_text;
+      //     output.textContent += `\nTranslated: ${translated}`;
+      //   } catch (err) {
+      //     output.textContent += `\nTranslation error: ${err.message}`;
+      //   }
+      // };
 
       recognition.onerror = (event) => {
         output.textContent = "Error: " + event.error;
@@ -440,13 +467,27 @@
       // };
     }
   </script>
-  
+
   <script>
-    async function analyze() {
-      const input = document.getElementById('txtinp').value;
-      const symptoms = await postData(input);
-      console.log('Detected symptoms: ' + symptoms.join(', '));
-      // document.getElementById('result').innerText = 'Detected symptoms: ' + symptoms.join(', ');
+    function createMessageElement(content, sender = 'bot') {
+      const div = document.createElement('div');
+      div.classList.add('message');
+
+      if (sender === 'bot') {
+        div.classList.add('bot-message');
+      } else if (sender === 'user') {
+        div.classList.add('user-message');
+      }
+
+      div.textContent = content;
+      return div;
+    }
+
+    function addMessage(content, sender = 'bot') {
+      const chatMessages = document.querySelector('.chat-messages');
+      const msg = createMessageElement(content, sender);
+      chatMessages.appendChild(msg);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
     let pyodide;
@@ -492,7 +533,6 @@
 
       // You can use setGlobals to pass JS variables to Python
       pyodide.globals.set("js_input", input);
-
       // Run Python code that uses the variable
       const result = await pyodide.runPythonAsync(`
 import json, re, os
@@ -535,10 +575,7 @@ def getSymptoms(sentence):
     temp = []
     words_done = set()
 
-    if len(sentenceList) < 10 and len(sentenceList) >= 2:
-        gram_2 =  set(map(lambda x:' '.join(x),combinations(sentenceList,2)))
-    else:
-        gram_2 = {sentenceList[i-1]+sentenceList[i] for i in range(1,len(sentenceList))}
+    gram_2 = {sentenceList[i-1]+" "+sentenceList[i] for i in range(1,len(sentenceList))}
     gram_1 = set(sentenceList)
     required_list = list(gram_2)
     required_list.sort(key = lambda x:abs(sentenceList.index(x.split()[0])-sentenceList.index(x.split()[1])))
@@ -563,10 +600,13 @@ def getSymptoms(sentence):
             continue
         symplist.extend(temp)
         temp.clear()
-    return [i[1] for i in symplist]
+    return ",".join([i[1] for i in symplist])
 getSymptoms(js_input)
 `);
-      document.getElementById("output").textContent = result;
+      addMessage(input,'user');
+      addMessage(result,'bot');
+      docs = document.getElementById('userInput');
+      docs.value = '';
     }
     initPyodide();
 
